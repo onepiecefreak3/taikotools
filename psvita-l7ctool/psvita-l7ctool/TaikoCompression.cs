@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace TaikoCompression
+// ReSharper disable once CheckNamespace
+namespace psvita_l7ctool
 {
-    class TaikoCompression
+    internal class TaikoCompression
     {
         static bool DebugDecompressionCode = false;
 
         public static byte[] Compress(byte[] data)
         {
-            List<byte> output = new List<byte>();
+            var output = new List<byte>();
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+            using (var reader = new BinaryReader(new MemoryStream(data)))
             {
-                int remaining = data.Length;
+                var remaining = data.Length;
                 while (remaining > 0)
                 {
                     byte compLen = 0x3f;
@@ -29,7 +30,7 @@ namespace TaikoCompression
                 }
             }
 
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
                 output.Add(0);
 
             return output.ToArray();
@@ -37,25 +38,25 @@ namespace TaikoCompression
 
         public static byte[] Decompress(byte[] data, byte[] prev = null)
         {
-            List<byte> output = new List<byte>();
+            var output = new List<byte>();
 
             if (prev != null)
                 output = new List<byte>(prev);
 
-            using (BinaryReader reader = new BinaryReader(new MemoryStream(data)))
+            using (var reader = new BinaryReader(new MemoryStream(data)))
             {
                 while (reader.BaseStream.Position < reader.BaseStream.Length)
                 {
-                    byte c = reader.ReadByte();
+                    var c = reader.ReadByte();
 
                     if (DebugDecompressionCode)
                         Console.Write("{0:x8} {1:x2} | {2:x8} | ", reader.BaseStream.Position - 1, c, output.Count);
 
                     if (c > 0xbf)
                     {
-                        int len = (c - 0xbe) * 2;
-                        int flag = reader.ReadByte();
-                        int back = ((flag & 0x7f) << 8) + reader.ReadByte() + 1;
+                        var len = (c - 0xbe) * 2;
+                        var flag = reader.ReadByte();
+                        var back = ((flag & 0x7f) << 8) + reader.ReadByte() + 1;
 
                         if ((flag & 0x80) != 0)
                         {
@@ -65,16 +66,16 @@ namespace TaikoCompression
                         if (DebugDecompressionCode)
                             Console.WriteLine("{0:x4} {1:x4} | {2:x4}", len, back, flag);
 
-                        int end = output.Count;
-                        for (int i = 0; i < len; i++)
+                        var end = output.Count;
+                        for (var i = 0; i < len; i++)
                         {
                             output.Add(output[end - back + i]);
                         }
                     }
                     else if (c > 0x7f)
                     {
-                        int len = ((c >> 2) & 0x1f);
-                        int back = ((c & 0x3) << 8) + reader.ReadByte() + 1;
+                        var len = ((c >> 2) & 0x1f);
+                        var back = ((c & 0x3) << 8) + reader.ReadByte() + 1;
 
                         if ((c & 0x80) != 0)
                         {
@@ -84,38 +85,24 @@ namespace TaikoCompression
                         if (DebugDecompressionCode)
                             Console.WriteLine("{0:x4} {1:x4}", len, back);
 
-                        int end = output.Count;
-                        for (int i = 0; i < len; i++)
+                        var end = output.Count;
+                        for (var i = 0; i < len; i++)
                         {
-                            if (i > end)
-                            {
-                                output.Add(output[end - 1]);
-                            }
-                            else
-                            {
-                                output.Add(output[end - back + i]);
-                            }
+                            output.Add(i > end ? output[end - 1] : output[end - back + i]);
                         }
                     }
                     else if (c > 0x3f)
                     {
-                        int len = (c >> 4) - 2;
-                        int back = (c & 0x0f) + 1;
+                        var len = (c >> 4) - 2;
+                        var back = (c & 0x0f) + 1;
 
                         if (DebugDecompressionCode)
                             Console.WriteLine("{0:x4} {1:x4}", len, back);
 
-                        int end = output.Count;
-                        for (int i = 0; i < len; i++)
+                        var end = output.Count;
+                        for (var i = 0; i < len; i++)
                         {
-                            if (i > end)
-                            {
-                                output.Add(output[end - 1]);
-                            }
-                            else
-                            {
-                                output.Add(output[end - back + i]);
-                            }
+                            output.Add(i > end ? output[end - 1] : output[end - back + i]);
                         }
                     }
                     else if (c == 0x00)
@@ -123,9 +110,9 @@ namespace TaikoCompression
                         var offset = reader.BaseStream.Position - 1;
 
                         // Wat?
-                        int flag = reader.ReadByte();
-                        int flag2 = 0;
-                        int len = 0x40;
+                        var flag = (int)reader.ReadByte();
+                        var flag2 = 0;
+                        var len = 0x40;
 
                         if ((flag & 0x80) == 0)
                         {
@@ -140,7 +127,7 @@ namespace TaikoCompression
                         }
                         else
                         {
-                            len += (flag & 0x7f);
+                            len += flag & 0x7f;
                         }
 
                         if (DebugDecompressionCode)

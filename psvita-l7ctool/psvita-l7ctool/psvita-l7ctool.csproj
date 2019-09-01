@@ -46,10 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitReader.cs" />
     <Compile Include="Crc32.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaikoCompression.cs" />
+    <Compile Include="TaikoCompression2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

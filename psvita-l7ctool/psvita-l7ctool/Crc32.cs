@@ -1,4 +1,5 @@
-﻿namespace psvita_l7ctool
+﻿// ReSharper disable once CheckNamespace
+namespace psvita_l7ctool
 {
     static class Crc32
     {
@@ -52,12 +53,12 @@
         {
             uint crc = 0xffffffff;
 
-            for (int i = 0; i < buffer.Length; i++)
+            foreach (var value in buffer)
             {
-                crc = (crc >> 8) ^ Crc32Tab[(crc & 0xFF) ^ buffer[i]];
+                crc = (crc >> 8) ^ Crc32Tab[(crc & 0xFF) ^ value];
             }
 
-            return crc ^ 0xffffffff;
+            return ~crc;
         }
 
         public static uint CalculateNamco(string data)
@@ -66,16 +67,16 @@
 
             uint hash = 0xffffffff;
             uint hash2 = 0;
-            for (int i = 0; i < data.Length; i++)
+            foreach (var value in data)
             {
-                hash = Crc32Tab[((hash ^ data[i]) & 0xff)] ^ (hash >> 8);
+                hash = Crc32Tab[(hash ^ value) & 0xff] ^ (hash >> 8);
                 hash2 ^= hash;
-                hash = (hash2 * data[i]) + hash;
+                hash = hash2 * value + hash;
                 hash2 *= 5;
                 hash2++;
             }
-            hash ^= 0xffffffff;
-            return hash;
+
+            return ~hash;
         }
     }
 }
